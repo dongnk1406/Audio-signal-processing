@@ -1,0 +1,17 @@
+import subprocess
+import os
+
+def mp3_wav_convert(i_path, o_path):
+    command = 'ffmpeg -i'
+    for file in os.listdir(i_path):
+        if file.endswith('mp3'):
+            input = i_path + '\\' + file
+            output = o_path + '\\' + file.replace('mp3', 'wav')
+            subprocess.run( '{} {} -ar 16k {}'.format(command, input, output), shell=True)
+            if os.path.isfile(output) is not True:
+                subprocess.run('{} {} {}'.format(command, input, output), shell=True)
+
+
+i_path = 'D:\Desktop\Outsource_IP_SP\DATA\dantri-kinh-doanh'
+o_path = 'D:\Desktop\Outsource_IP_SP\DATA\dantri-kinh-doanh-wav'
+mp3_wav_convert(i_path, o_path)

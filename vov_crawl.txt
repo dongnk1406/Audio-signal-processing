@@ -1,0 +1,98 @@
+import requests
+from bs4 import BeautifulSoup
+import os
+from time import sleep
+def downloadFile(url, filename):
+    if os.path.isfile(filename) is not True:
+        raw = requests.get(url, stream=True)
+        with open(filename, 'wb') as fd:
+            for chunk in raw.iter_content(chunk_size=1024):
+                fd.write(chunk)
+
+def vov_crawl(start, end, MUC, PT, SRC, R, S, A, B):
+    cnt = start - 1
+    base = 'https://vov.vn'
+    url = 'https://vov.vn/' + MUC
+    h = {'user-agent': 'my-app/0.0.1'}
+
+    # Chuyển trang
+    while(cnt < end):
+        pageUrl = url + '?page=' + str(cnt)
+        print(pageUrl)
+        r = requests.get(pageUrl, headers=h) # Lấy source code của page
+        soup = BeautifulSoup(r.content, 'html.parser') # Chuyển source code của page thành kiểu dữ liệu BeautifulSoup
+
+
+        for BaiViet in soup.findAll('div', {'class': 'card-body'}):
+            if BaiViet.find('i', {'class': 'zmdi-volume-up'}): # Kiểm tra xem bài viết có audio hay ko
+                LinkBaiViet = base + BaiViet.find('a', {'class': 'vovvn-title'}).get('href') # Lấy link bài viết
+
+                rbv = requests.get(LinkBaiViet, headers=h) # Lấy source code của bài viết
+                soupBaiViet = BeautifulSoup(rbv.content, 'html.parser') # Chuyển source code của bài viết thành kiểu dữ liệu BeautifulSoup
+
+                # THỜI GIAN XUẤT BẢN CỦA BÀI VIẾT
+                date = soupBaiViet.find('div', {'class': 'col-md-6'})
+                if date is None:
+                    continue
+                date = date.get_text().split('/')
+                yyyy = date[2][0:4]
+                mm = date[1][0:2]
+                dd = date[0][-2] + date[0][-1]
+                hh = date[0].split(':')[0][-2] + date[0].split(':')[0][-1]
+                mnmn = date[0].split(':')[1][0:2]
+
+                # FILE NAME
+                filename = PT + SRC + yyyy + mm + dd + hh +mnmn + R + S + A + B
+
+                #AUDIO
+                audioName = filename + '.mp3' # Đặt tên file audio
+                LinkAudio = soupBaiViet.find('div', {'data-embed-button': 'audio'}).get('data-url').replace('https://', 'https://media.') # Link file audio
+                downloadFile(LinkAudio, audioName) # download audio
+
+                #TEXT
+                textName = filename + '.txt' # Đặt tên file text
+                content = soupBaiViet.find('div', {'class': 'text-long'}) # Lấy toàn bộ phần text của bài viết
+                while content.div is not None: #
+                    content.div.decompose()    # Bỏ phần text ko cần thiết
+                if os.path.isfile(textName) is not True:
+                    with open(textName, 'a', encoding = 'utf-8') as file: # Lưu lại text
+                        for p in content.findAll('p'):                    #
+                            file.writelines(p.get_text() + '\n\n')        #
+            sleep(1)
+        cnt = cnt + 1
+
+path = 'D:\\vov'
+if(os.path.isdir(path) == False):
+    os.mkdir(path)
+os.chdir(path)
+#                    MUC      PT    SRC                   B
+vov_crawl(39, 50, 'kinh-te', '00', '000', 'R', 'S', 'A', '4')
+
+'''
+PT: CHỦ ĐỀ:
+00	Tin tức: từ các nguồn thời sự, tin trên các đài phát thanh, truyền hình, trang tin							
+01	Phim, kịch: có các đoạn hội thoại							
+02	Đọc truyện, kể chuyện, sách nói							
+03	Phỏng vấn:							
+04	Talk show: Các đối đáp, trên các chương trình talkshow							
+05	Đời sống: những phần bình của các đoạn về cuộc sống, du lịch, ..							
+06	Thể thao: Tin thể thao, bình luận thể thao							
+07	An ninh cuộc sống: trộm, cướp, ..							
+08	Giao thông: tin tức, an toàn giao thông							
+09	Sức khỏe: tư vấn sức khỏe, …	
+
+SRC: NGUỒN:
+000	VOV: thuộc Đài tiếng nói Việt Nam (không phân biệt VOV1, 2,…)						
+001	VTV: thuộc Đài truyền hình Việt Nam (không phân biệt VTV1, 2, …)						
+002	VTC: thuộc Đài TH Kỹ thuật số VTC (không phân biệt VTC1, 2, …)						
+003	HCMTV: thuộc đài phát thanh và truyền hình TP. Hồ Chí Minh						
+004	HanoiTV: thuộc Đài phát thanh và truyền hình Hà Nội						
+005	Dân trí: từ trang Dân trí			
+
+B: NGƯỜI SƯU TẦM:
+0	Hưng
+1	Dương
+2	Đông
+3	Lộc
+4	Hoàng									
+'''
