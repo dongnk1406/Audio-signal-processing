@@ -1,0 +1,27 @@
+import speech_recognition as sr
+import os
+import webbrowser as wb
+# input, output are folder cung ten
+i_path = 'C:\\Users\\Good\\Desktop\\T00_S000_202108211800_R_S_0\\T00_S000_202108211800_R_S_0'
+o_path = 'D:\\shiet2'
+
+if os.path.isdir(o_path) is not True:
+    os.mkdir(o_path)
+os.chdir(o_path)
+
+r = sr.Recognizer()
+for wav_file in os.listdir(i_path):
+    if wav_file.endswith('.wav'):
+        with sr.AudioFile(i_path + '\\' + wav_file) as source:
+            #LOAD ÂM THANH
+            audio_data = r.record(source)
+            #NHẬN BIẾT TIẾNG VIỆT
+            txt_name = wav_file.replace('.wav', '.txt')
+            try:
+                text = r.recognize_google(audio_data, language = 'vi-VN')
+                with open(txt_name, 'w', encoding='utf-8') as txt_file:
+                    txt_file.writelines(text)
+                print(txt_name)
+            except Exception as e:
+                print('{} !!!'.format(txt_name))
+                print(e)
