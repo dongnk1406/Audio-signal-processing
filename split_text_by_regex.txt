@@ -1,0 +1,44 @@
+
+import os
+def cut_file(i_path, o_path):
+	for file in os.listdir(i_path): 
+		# trỏ đến folder lưu file text chưa cắt
+		if file.endswith('.txt'):
+			# kiểm tra xem có phải file text không
+			name_file = file.split('.txt')[0]
+			#tách tên file text ra để tí lưa tên file text cắt
+			os.chdir(o_path)
+			# trỏ đến folder lưa file cắt
+			for file_out in os.listdir(): # duyệt 
+				if name_file == file_out: # nếu cùng tên 
+					print(file_out)
+					count = 0
+					new_file = file.replace('.txt', '-{:03d}.txt'.format(count))
+					# tên file text cắt được đánh dấu tự động
+					try: 
+						with open(i_path + '/' + file, 'r', encoding = 'utf-8') as f:
+							# đọc file text
+							for file_cut in f.read().splitlines():
+								if file_cut != '':
+									# nếu đoạn cắt khác rỗng
+									while file_cut:
+										# lặp đến bao h lấy hết đoạn cắt thì thôi
+										with open(o_path + '/' + file_out + '/' + new_file, 'w', encoding = 'utf-8') as f1:
+											f1.write(file_cut)
+											# ghi đoạn cắt vào file mới
+										print(new_file)
+										# tến file cắt mới
+										count += 1
+										# tăng biến đánh dấu tự động
+										new_file = file.replace('.txt', '-{:03d}.txt'.format(count))
+										# đặt tên cho file cắt mới
+										file_cut = f.readline()
+					except Exception as e:
+						print('file loi')
+		
+i_path = '/Users/danghung/Documents/vov/2021:08:30/0.Original' 
+# đường dẫn folder chứa file text lớn được tải về cùng mp3
+o_path = '/Users/danghung/Documents/vov/2021:08:30/2.Raw2'
+# đường dẫn fordel chứa các folder clean con(là các folder con chứa wav cắt và text cắt)
+cut_file(i_path, o_path)
+
